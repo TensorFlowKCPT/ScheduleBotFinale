@@ -216,4 +216,8 @@ def GetTeacherScheduleById(Date:datetime.datetime,TeacherId:int):
     else:
         logger.Log('Ошибка при выполнении запроса на получение расписания для преподавателя: '+str(TeacherId)+' на '+Date.strftime('%d.%m.20%y')+': ', response.status_code)
 
-print(GetAllGroups())
+rasstd = GetScheduleById(datetime.datetime(2023, 2, 7), 12)
+rastch = GetTeacherScheduleById(datetime.datetime(2023, 2, 7), 12)
+
+for i in rastch:
+    print(i)

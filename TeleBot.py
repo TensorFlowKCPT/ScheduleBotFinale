@@ -2,6 +2,9 @@ import telebot
 from telebot import types
 from sql import Database
 import datetime
+from KCPTapi import GetScheduleById,GetTeacherScheduleById
+from CreateImg import getGroupScheduleAsImg,getTeacherScheduleAsImg
+
 
 #Ветка приватная, не ссыте оставлять ключ
 #Ключ от ScheduleBot: 6062185576:AAGwpqVz0K8Zg_i7hz-URE2USZcxazuGN-A
@@ -45,13 +48,21 @@ def GetMenuKeyboard(message):
         keyboard.add(PrepodPanelButton)
     return keyboard
 @staticmethod
-def GetDatesKeyboard():
+def GetDatesKeyboard(IsTeacher:bool):
     # Создаем клавиатуру
     keyboard = types.InlineKeyboardMarkup()
+    #Временно!
+    button_day = types.InlineKeyboardButton(text="07.02.2023", callback_data="07.02.2023")
+    keyboard.add(button_day)
+    button_day = types.InlineKeyboardButton(text="07.02.2023*", callback_data="07.02.2023*")
+    keyboard.add(button_day)
     # Создаем кнопки для нескольких дней
     for i in range(1,7):
-        date = (datetime.datetime.now()+datetime.timedelta(days=i)).strftime('%d.%m.20%y')
-        button_day = types.InlineKeyboardButton(text=date, callback_data=date)
+        date = (datetime.datetime.now()+datetime.timedelta(days=i)).strftime('%d.%m.%Y')
+        if IsTeacher:
+            button_day = types.InlineKeyboardButton(text=date, callback_data=date+'*')
+        else:
+            button_day = types.InlineKeyboardButton(text=date, callback_data=date)
         keyboard.add(button_day)
     return keyboard
 #endregion
@@ -68,12 +79,14 @@ def PrepodPanel(message):
         bot.send_message(message.chat.id,text='Здравствуйте, ' + Database.getPrepodFioByChatId(message.chat.id),reply_markup=GetPrepodsKeyboard())
 @bot.message_handler(regexp='Посмотреть мое расписание🗒️')
 def GetPrepodsSchedule(message):
-    #TODO
-    bot.send_message(message.chat.id,text='Эта функция временно вырезана')
+    bot.send_message(message.chat.id,text='Выберите дату на которое вам нужно получить расписание',reply_markup=GetDatesKeyboard(True))
 
 
 @bot.message_handler(commands=['pr'])
 def PrepodPassword(message):
+    if Database.is_user_prepod(message.chat.id):
+        bot.send_message(message.chat.id, text='Вы уже преподаватель!') 
+        return
     if(len(message.text)>4 and ' ' in message.text):
         if(Database.RegPrepod(message.chat.id, message.text.split(' ')[1])):
             PrepodPanel(message)
@@ -118,34 +131,28 @@ def on_group_change(message):
 #region Функционал расписаний
 @bot.message_handler(regexp='Расписание 📝')
 def ScheduleButton_handler(message):
-    bot.send_message(message.chat.id,text='Выберите дату на которое вам нужно получить расписание',reply_markup=GetDatesKeyboard())
+    bot.send_message(message.chat.id,text='Выберите дату на которое вам нужно получить расписание',reply_markup=GetDatesKeyboard(False))
 
 @bot.callback_query_handler(func=lambda call: True)
 def callback_handler(call):
-    #TODO
-    print(call.message.chat.id)
     if '*' in call.data:
         try:
-            Pars_result = ParsTeacher.GetTeacherSchedule(DATE=call.data.split('*')[0],FIO=call.data.split('*')[1])
-        except:
+            image = getTeacherScheduleAsImg(GetTeacherScheduleById(datetime.datetime.strptime(call.data[0:len(call.data)-1],"%d.%m.%Y"),Database.getPrepodIdByChatId(call.message.chat.id)))
+            image.save('table.png')
+            with open('table.png', 'rb') as f:
+                bot.send_photo(call.message.chat.id,photo=f)
+        except FileNotFoundError:
             bot.send_message(call.message.chat.id,text='Расписание на эту дату не найдено')
             return
-        image = getScheduleAsImg(Pars_result)
-        image.save('table.png')
-        with open('table.png', 'rb') as f:
-            bot.send_photo(call.message.chat.id,photo=f)
     else:
         try:
-            Pars_result = GetDaySchedule(Data=call.data,Group=Database.GetGroupByUserId(call.message.chat.id))
-        except IndexError:
+            image = getGroupScheduleAsImg(GetScheduleById(datetime.datetime.strptime(call.data,"%d.%m.%Y"),Database.GetGroupIdByUserId(call.message.chat.id)))
+            image.save('table.png')
+            with open('table.png', 'rb') as f:
+                bot.send_photo(call.message.chat.id,photo=f)
+        except FileNotFoundError:
             bot.send_message(call.message.chat.id,text='Расписание на эту дату не найдено')
             return
-        image = getScheduleAsImg(Pars_result[0])
-        if Pars_result[1]:
-            bot.send_message(call.message.chat.id,text='Возможны ошибки, изменения в расписании не найдены или неполные, ответ стоит перепроверить вручную')
-        image.save('table.png')
-        with open('table.png', 'rb') as f:
-            bot.send_photo(call.message.chat.id,photo=f)
 #endregion
 #region Старт бота
 

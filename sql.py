@@ -65,9 +65,9 @@ class Database:
             c.execute("SELECT GroupName FROM Groups")
             return c.fetchall()
     @staticmethod
-    def GetGroupByUserId(ChatId):
+    def GetGroupIdByUserId(ChatId):
         with sqlite3.connect('ScheduleBot.db') as conn:
-            cursor = conn.execute("SELECT Groups.GroupName FROM Users INNER JOIN Groups ON Users.group_id = Groups.id WHERE Users.id=?", (ChatId,))
+            cursor = conn.execute("SELECT Users.group_id FROM Users WHERE Users.id=?", (ChatId,))
             result = cursor.fetchone()
             if result:
                 return result[0]
@@ -77,6 +77,15 @@ class Database:
     def getPrepodFioByChatId(ChatId:str):
         with sqlite3.connect('ScheduleBot.db') as conn:
             cursor = conn.execute("SELECT PrepodUsers.FIO FROM PrepodUsers WHERE chatid = ?", (ChatId,))
+            result = cursor.fetchone()
+            if result:
+                return result[0]
+            else:
+                return None
+    @staticmethod
+    def getPrepodIdByChatId(ChatId:str):
+        with sqlite3.connect('ScheduleBot.db') as conn:
+            cursor = conn.execute("SELECT PrepodUsers.apiid FROM PrepodUsers WHERE chatid = ?", (ChatId,))
             result = cursor.fetchone()
             if result:
                 return result[0]

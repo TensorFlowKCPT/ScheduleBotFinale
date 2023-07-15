@@ -33,6 +33,7 @@ def GetAllGroups():
         return response.json()
     else:
         logger.Log('Ошибка при выполнении запроса на получение списка групп: ', response.status_code)
+        raise FileNotFoundError
 
 @staticmethod
 def GetAllTeachers():
@@ -67,9 +68,10 @@ def GetAllTeachers():
         return response.json()
     else:
         logger.Log('Ошибка при выполнении запроса на получение списка преподавателей: ', response.status_code)
+        raise FileNotFoundError
 
 @staticmethod
-def GetScheduleById(Date:datetime.datetime,GroupId:int):
+def GetScheduleById(Date:datetime.datetime,GroupId):
     '''
     Принимает:
         Дата:DateTime
@@ -124,6 +126,7 @@ def GetScheduleById(Date:datetime.datetime,GroupId:int):
         return result
     else:
         logger.Log('Ошибка при выполнении запроса на получение расписания для группы: '+GroupId+' на '+Date.strftime('%d.%m.20%y')+': ', response.status_code)
+        raise FileNotFoundError
 
 @staticmethod
 def GetScheduleByName(Date:datetime.datetime,GroupName:str):
@@ -183,6 +186,7 @@ def GetScheduleByName(Date:datetime.datetime,GroupName:str):
         return result
     else:
         logger.Log('Ошибка при выполнении запроса на получение расписания для группы: '+GroupId+' на '+Date.strftime('%d.%m.20%y')+': ', response.status_code)
+        raise FileNotFoundError
 
 @staticmethod
 def GetTeacherScheduleById(Date:datetime.datetime,TeacherId:int):
@@ -215,9 +219,4 @@ def GetTeacherScheduleById(Date:datetime.datetime,TeacherId:int):
         return result
     else:
         logger.Log('Ошибка при выполнении запроса на получение расписания для преподавателя: '+str(TeacherId)+' на '+Date.strftime('%d.%m.20%y')+': ', response.status_code)
-
-rasstd = GetScheduleById(datetime.datetime(2023, 2, 7), 12)
-rastch = GetTeacherScheduleById(datetime.datetime(2023, 2, 7), 12)
-
-for i in rastch:
-    print(i)
+        raise FileNotFoundError

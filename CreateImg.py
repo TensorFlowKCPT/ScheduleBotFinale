@@ -116,7 +116,7 @@ def getTeacherScheduleAsImg(Schedule):
         table_data.append(row)
 
     y = 30 * sum([max([len(row[i]) for i in range(1, 4)]) for row in table_data]) + len(table_data) + 1
-    image = Image.new('RGB', (1920, y + 400), color=(255, 255, 255))
+    image = Image.new('RGB', (1390, y + 600), color=(255, 255, 255))
     draw = ImageDraw.Draw(image)
 
     font = ImageFont.truetype('arial.ttf', size=18)

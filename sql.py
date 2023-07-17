@@ -65,6 +65,12 @@ class Database:
             c.execute("SELECT GroupName FROM Groups")
             return c.fetchall()
     @staticmethod
+    def GetUsersCount():
+        with sqlite3.connect('ScheduleBot.db') as conn:
+            c = conn.cursor()
+            c.execute("SELECT COUNT(*) FROM Users")
+            return c.fetchone()
+    @staticmethod
     def GetGroupIdByUserId(ChatId):
         with sqlite3.connect('ScheduleBot.db') as conn:
             cursor = conn.execute("SELECT Users.group_id FROM Users WHERE Users.id=?", (ChatId,))

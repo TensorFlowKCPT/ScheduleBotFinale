@@ -28,7 +28,7 @@ def GetAllGroups():
     ]
     '''
     response = requests.get('https://shed.kcpt72.ru/api/json/classes_json.php', verify=False)
-    if response.status_code == 200:
+    if response.status_code == 200 and response.json()!=[]:
         # Обработка успешного ответа
         return response.json()
     else:
@@ -63,7 +63,7 @@ def GetAllTeachers():
     ]
     '''
     response = requests.get('https://shed.kcpt72.ru/api/json/teachers_json.php', verify=False)
-    if response.status_code == 200:
+    if response.status_code == 200 and response.json()!=[]:
         # Обработка успешного ответа
         return response.json()
     else:
@@ -119,13 +119,14 @@ def GetScheduleById(Date:datetime.datetime,GroupId):
     }
     ]
     '''
+    
     response = requests.get('https://shed.kcpt72.ru/api/json/class_day_json.php?date='+Date.strftime('%Y-%m-%d')+'&id='+str(GroupId), verify=False)
-    if response.status_code == 200:
+    if response.status_code == 200 and response.json()!=[]:
         # Обработка успешного ответа
         result = response.json()
         return result
     else:
-        logger.Log('Ошибка при выполнении запроса на получение расписания для группы: '+GroupId+' на '+Date.strftime('%d.%m.20%y')+': ', response.status_code)
+        logger.Log('Ошибка при выполнении запроса на получение расписания для группы: '+str(GroupId)+' на '+Date.strftime('%d.%m.20%y')+': '+ str(response.status_code))
         raise FileNotFoundError
 
 @staticmethod
@@ -180,12 +181,12 @@ def GetScheduleByName(Date:datetime.datetime,GroupName:str):
     dictionary = {item["Name"]:item["ID"] for item in GetAllGroups()}
     GroupId=dictionary[GroupName]
     response = requests.get('https://shed.kcpt72.ru/api/json/class_day_json.php?date='+Date.strftime('%Y-%m-%d')+'&id='+str(GroupId), verify=False)
-    if response.status_code == 200:
+    if response.status_code == 200 and response.json()!=[]:
         # Обработка успешного ответа
         result = response.json()
         return result
     else:
-        logger.Log('Ошибка при выполнении запроса на получение расписания для группы: '+GroupId+' на '+Date.strftime('%d.%m.20%y')+': ', response.status_code)
+        logger.Log('Ошибка при выполнении запроса на получение расписания для группы: '+GroupId+' на '+Date.strftime('%d.%m.20%y')+': '+str(response.status_code))
         raise FileNotFoundError
 
 @staticmethod
@@ -213,10 +214,10 @@ def GetTeacherScheduleById(Date:datetime.datetime,TeacherId:int):
     ]
     '''
     response = requests.get('https://shed.kcpt72.ru/api/json/teacher_day_json.php?date='+Date.strftime('%Y-%m-%d')+'&id='+str(TeacherId), verify=False)
-    if response.status_code == 200:
+    if response.status_code == 200 and response.json()!=[]:
         # Обработка успешного ответа
         result = response.json()
         return result
     else:
-        logger.Log('Ошибка при выполнении запроса на получение расписания для преподавателя: '+str(TeacherId)+' на '+Date.strftime('%d.%m.20%y')+': ', response.status_code)
+        logger.Log('Ошибка при выполнении запроса на получение расписания для преподавателя: '+str(TeacherId)+' на '+str(Date.strftime('%d.%m.20%y'))+': '+ str(response.status_code))
         raise FileNotFoundError

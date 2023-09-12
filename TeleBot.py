@@ -5,7 +5,7 @@ import datetime
 from KCPTapi import GetScheduleById,GetTeacherScheduleById
 from CreateImg import getGroupScheduleAsImg,getTeacherScheduleAsImg
 import logger
-
+import os
 
 
 #Ветка приватная, не ссыте оставлять ключ
@@ -68,13 +68,8 @@ def GetMenuKeyboard(message):
 def GetDatesKeyboard(IsTeacher:bool):
     # Создаем клавиатуру
     keyboard = types.InlineKeyboardMarkup()
-    #Временно!
-    button_day = types.InlineKeyboardButton(text="07.02.2023", callback_data="07.02.2023")
-    keyboard.add(button_day)
-    button_day = types.InlineKeyboardButton(text="07.02.2023*", callback_data="07.02.2023*")
-    keyboard.add(button_day)
     # Создаем кнопки для нескольких дней
-    for i in range(1,7):
+    for i in range(0,7):
         date = (datetime.datetime.now()+datetime.timedelta(days=i)).strftime('%d.%m.%Y')
         if IsTeacher:
             button_day = types.InlineKeyboardButton(text=date, callback_data=date+'*')
@@ -214,6 +209,15 @@ def callback_handler(call):
             return
 #endregion
 #region Старт бота
-logger.Log("Bot Started!")
-bot.polling()
+try:
+    os.remove('ScheduleBot.db')
+except:
+    print("База не найдена")
+Database.StartDatabase()
+while True:
+    try:
+        logger.Log("Bot Started!")
+        bot.polling()
+    except:
+        logger.Log("Bot died!")
 #endregion

@@ -119,10 +119,10 @@ class Database:
                  DROP TABLE IF EXISTS Groups
                 ''')
 
-        # with sqlite3.connect('ScheduleBot.db') as conn:
-        #     conn.execute('''
-        #          DROP TABLE IF EXISTS Users
-        #         ''')
+        with sqlite3.connect('ScheduleBot.db') as conn:
+            conn.execute('''
+                 DROP TABLE IF EXISTS Users
+                ''')
         
         #Создание таблицы с группами
         with sqlite3.connect('ScheduleBot.db') as conn:

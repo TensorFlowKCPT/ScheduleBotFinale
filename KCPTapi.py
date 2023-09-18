@@ -101,7 +101,7 @@ def GetSchedule(Date:datetime.datetime,GroupId:str):
 
 
 @staticmethod
-def GetTeacherSchedule(Date:datetime.datetime,TeacherId:int):
+def GetTeacherSchedule(Date:datetime.datetime,TeacherId:str):
     '''
     Принимает:
         Дата:DateTime
@@ -124,7 +124,7 @@ def GetTeacherSchedule(Date:datetime.datetime,TeacherId:int):
     }
     ]
     '''
-    response = requests.get(link+'json/teacher_day?date='+Date.strftime('%Y-%m-%d')+'&teacher='+str(TeacherId), verify=False)
+    response = requests.get(link+'teacher_day?date='+Date.date().strftime('%Y-%m-%d')+'&teacher='+str(TeacherId), verify=False)
     if response.status_code == 200 and response.json()!=[]:
         # Обработка успешного ответа
         result = response.json()

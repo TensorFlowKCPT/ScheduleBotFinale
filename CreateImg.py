@@ -43,20 +43,17 @@ def GetUrokTime(Date:datetime,UrokNumber:int):
         return NormalList[int(UrokNumber)]
 
 def getGroupScheduleAsImg(Schedule):
-    header = ["Урок", "Предмет", "Каб.", "Преподаватель", "Время", "Подгруппа"]
+    if len(Schedule) == 0: return False
+    header = ["Урок", "Предмет", "Каб.", "Преподаватель", "Время"]
     table_data = []
     max_width = 20
     max_width_kab = 3
-
     for urok in Schedule:
-        name_lines = textwrap.wrap(urok["Предмет"], max_width)
-        kabinet_lines = textwrap.wrap(urok["Кабинет"], max_width_kab)
-        prepod_lines = textwrap.wrap(urok["Фамилия"] + " " + urok["Имя"]+ " " + urok["Отчество"] , max_width)
-        row = [int(urok["Урок"]), name_lines, kabinet_lines, prepod_lines, GetUrokTime(datetime.datetime.strptime(urok["Дата"], "%Y-%m-%d"), int(urok["Урок"])), urok["Подгруппа"]]
+        name_lines = textwrap.wrap(Schedule[str(urok)]["Subject"], max_width)
+        kabinet_lines = textwrap.wrap(Schedule[str(urok)]["Classroom"], max_width_kab)
+        prepod_lines = textwrap.wrap(Schedule[str(urok)]['Prepod'] , max_width)
+        row = [Schedule[str(urok)]["Number"], name_lines, kabinet_lines, prepod_lines, GetUrokTime(datetime.datetime.strptime(str(Schedule[str(urok)]["Date"]), "%Y-%m-%d"), int(Schedule[str(urok)]["Number"]))]
         table_data.append(row)
-
-        prev_urok = urok
-
     y = 30 * sum([max([len(row[i]) for i in range(1, 4)]) for row in table_data]) + len(table_data) + 1
     image = Image.new('RGB', (1110, y + 350), color=(255, 255, 255))
     draw = ImageDraw.Draw(image)
@@ -107,14 +104,18 @@ def getGroupScheduleAsImg(Schedule):
     return image
 
 def getTeacherScheduleAsImg(Schedule):
-    header = ["Урок", "Группа", "Подгруппа", "Преподаватель", "Предмет", "Кабинет", "Изменения", "Время"]
+    header = ["Урок", "Группа", "Преподаватель", "Предмет", "Кабинет", "Изменения", "Время"]
     table_data = []
-
+    if len(Schedule)==0: return False
     for urok in Schedule:
-        prepod_lines = textwrap.wrap(urok["Фамилия"] + " " + urok["Имя"]+ " " + urok["Отчество"] , 25)
-        row = [int(urok["Урок"]),textwrap.wrap(urok["Группа"],9), urok["Подгруппа"], prepod_lines, "\n".join(textwrap.wrap(urok["Предмет"], 27)), "".join(textwrap.wrap(urok["Кабинет"], 3)),urok["ИЗМЕНЕНИЕ"], GetUrokTime(datetime.datetime.strptime(urok["Дата"], "%Y-%m-%d"), urok["Урок"])]
+        prepod_lines = textwrap.wrap(Schedule[str(urok)]["Prepod"] , 25)
+        if type(prepod_lines) == str:
+            prepod_lines = [prepod_lines]
+        row = [int(Schedule[str(urok)]["Number"]),textwrap.wrap(Schedule[str(urok)]["Group"],9), prepod_lines, "\n".join(textwrap.wrap(Schedule[str(urok)]["Subject"], 27)), "".join(textwrap.wrap(Schedule[str(urok)]["Classroom"], 3)),Schedule[str(urok)]["IsChange"], GetUrokTime(datetime.datetime.strptime(Schedule[str(urok)]["Date"], "%Y-%m-%d"), Schedule[str(urok)]["Number"])]
+        if type(row[3]) == str:
+            row[3] = [row[3]]
         table_data.append(row)
-
+    
     y = 30 * sum([max([len(row[i]) for i in range(1, 4)]) for row in table_data]) + len(table_data) + 1
     image = Image.new('RGB', (1390, y + 600), color=(255, 255, 255))
     draw = ImageDraw.Draw(image)
@@ -124,7 +125,7 @@ def getTeacherScheduleAsImg(Schedule):
     x = 10
     y = 10
 
-    cell_width = [60, 320, 100, 270, 270, 120, 120, 110]  # Ширина ячеек для каждого столбца
+    cell_width = [60, 300, 140, 270, 270, 120, 120, 110]  # Ширина ячеек для каждого столбца
     cell_height = 40
 
     logo_image = Image.open("Logo.png")

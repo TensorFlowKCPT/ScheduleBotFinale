@@ -2,7 +2,7 @@ import telebot
 from telebot import types
 from sql import Database
 import datetime
-from KCPTapi import GetScheduleById,GetTeacherScheduleById
+from KCPTapi import GetSchedule,GetTeacherSchedule,GetAllGroups
 from CreateImg import getGroupScheduleAsImg,getTeacherScheduleAsImg
 import logger
 import os
@@ -32,8 +32,8 @@ def GetGroupsKeyboard():
     # Создаем клавиатуру
     keyboard = types.ReplyKeyboardMarkup(row_width=5)
     # Создаем кнопки
-    for i in Database.GetAllGroups():
-        button = types.KeyboardButton(i[0])
+    for i in GetAllGroups():
+        button = types.KeyboardButton(i)
         keyboard.add(button)
     return keyboard
 @staticmethod
@@ -181,14 +181,15 @@ def callback_handler(call):
     if '*' in call.data:
         global TeacherQueriesCount
         TeacherQueriesCount += 1
-        try:
-            image = getTeacherScheduleAsImg(GetTeacherScheduleById(datetime.datetime.strptime(call.data[0:len(call.data)-1],"%d.%m.%Y"),Database.getPrepodIdByChatId(call.message.chat.id)))
+        
+        image = getTeacherScheduleAsImg(GetTeacherSchedule(datetime.datetime.strptime(call.data[0:len(call.data)-1],"%d.%m.%Y"),Database.getPrepodIdByChatId(call.message.chat.id)))
+        if image != False:
             image.save('table.png')
             with open('table.png', 'rb') as f:
                 bot.send_photo(call.message.chat.id,photo=f)
             logger.Log(str(call.message.chat.id)+" "+str(datetime.datetime.now()) + ' teacher success!' )
-            
-        except FileNotFoundError:
+
+        else:
             global TeacherFailsCount
             TeacherFailsCount += 1
             bot.send_message(call.message.chat.id,text='Расписание на эту дату не найдено')
@@ -196,28 +197,24 @@ def callback_handler(call):
     else:
         global UsersQueriesCount
         UsersQueriesCount += 1
-        try:
-            image = getGroupScheduleAsImg(GetScheduleById(datetime.datetime.strptime(call.data,"%d.%m.%Y"),Database.GetGroupIdByUserId(call.message.chat.id)))
+        image = getGroupScheduleAsImg(GetSchedule(datetime.datetime.strptime(call.data,"%d.%m.%Y"),Database.GetGroupIdByUserId(call.message.chat.id)))
+        if image != False:
             image.save('table.png')
             with open('table.png', 'rb') as f:
                 bot.send_photo(call.message.chat.id,photo=f)
             logger.Log(str(call.message.chat.id)+" "+str(datetime.datetime.now()) + ' success!' )
-        except FileNotFoundError:
+        else:
             global UserFailsCount
             UserFailsCount += 1
+            logger.Log(str(call.message.chat.id)+" Сейчас: "+str(datetime.datetime.now())+" Запрошенная дата: "+datetime.datetime.strptime(call.data,"%d.%m.%Y")+ " Запрошенная группа: "+Database.GetGroupIdByUserId(call.message.chat.id)+ ' error!' )
             bot.send_message(call.message.chat.id,text='Расписание на эту дату не найдено')
             return
 #endregion
 #region Старт бота
-try:
-    os.remove('ScheduleBot.db')
-except:
-    print("База не найдена")
 Database.StartDatabase()
-while True:
-    try:
-        logger.Log("Bot Started!")
-        bot.polling()
-    except:
-        logger.Log("Bot died!")
+try:
+    logger.Log("Bot Started!")
+    bot.polling()
+except:
+    logger.Log("Bot died!")
 #endregion

@@ -1,6 +1,6 @@
 import sqlite3
 import random, string
-from KCPTapi import GetAllTeachers, GetAllGroups
+from KCPTapi import GetAllTeachers
 class Database:
     @staticmethod
     def generate_password(length,seed:int):
@@ -11,21 +11,12 @@ class Database:
     @staticmethod
     def RegUser(ChatId, Group: str):
         with sqlite3.connect('ScheduleBot.db') as conn:
-            c = conn.cursor()
-            c.execute("SELECT id FROM Groups WHERE GroupName = ?", (Group,))
-            result = c.fetchone()
-            if result:
-                group_id = result[0]
-            else:
-                return
-
             # Добавляем нового пользователя в таблицу Users
-            c.execute('''
+            conn.execute('''
     INSERT INTO Users (id, group_id)
     VALUES (?, ?)
     ON CONFLICT (id) DO UPDATE SET group_id = EXCLUDED.group_id;
-''', (ChatId, group_id))
-            conn.commit()
+''', (ChatId, Group))
     @staticmethod
     def RegPrepod(ChatId:int, Password:str):
         check_password = False
@@ -58,12 +49,7 @@ class Database:
     def RemovePrepodUser(chatid):
         with sqlite3.connect('ScheduleBot.db') as conn:
             cursor = conn.execute("UPDATE PrepodUsers SET chatid = NULL WHERE chatid = ?", (chatid,))
-    @staticmethod
-    def GetAllGroups():
-        with sqlite3.connect('ScheduleBot.db') as conn:
-            c = conn.cursor()
-            c.execute("SELECT GroupName FROM Groups")
-            return c.fetchall()
+
     @staticmethod
     def GetUsersCount():
         with sqlite3.connect('ScheduleBot.db') as conn:
@@ -91,7 +77,7 @@ class Database:
     @staticmethod
     def getPrepodIdByChatId(ChatId:str):
         with sqlite3.connect('ScheduleBot.db') as conn:
-            cursor = conn.execute("SELECT PrepodUsers.apiid FROM PrepodUsers WHERE chatid = ?", (ChatId,))
+            cursor = conn.execute("SELECT PrepodUsers.FIO FROM PrepodUsers WHERE chatid = ?", (ChatId,))
             result = cursor.fetchone()
             if result:
                 return result[0]

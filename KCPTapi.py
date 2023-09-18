@@ -2,6 +2,7 @@ import requests
 import logger
 import datetime
 
+link = 'http://127.0.0.1:8000/api/'
 @staticmethod
 def GetAllGroups():
     '''
@@ -9,25 +10,13 @@ def GetAllGroups():
 
     Пример:
     [
-    {
-        "ID": "0",
-        "Name": "АТ 20-11"
-    },
-    {
-        "ID": "1",
-        "Name": "АТ 21-11"
-    },
-    {
-        "ID": "2",
-        "Name": "АТ 22-11"
-    },
-    {
-        "ID": "3",
-        "Name": "ДО 20-11-1"
-    }
+    "АТ 21-11-1",
+    "АТ 21-11-2",
+    "АТ 21-11-3",
+    ...
     ]
     '''
-    response = requests.get('https://shed.kcpt72.ru/api/json/classes_json.php', verify=False)
+    response = requests.get(link+'groups', verify=False)
     if response.status_code == 200 and response.json()!=[]:
         # Обработка успешного ответа
         return response.json()
@@ -38,31 +27,31 @@ def GetAllGroups():
 @staticmethod
 def GetAllTeachers():
     '''
-    Возвращает словарь со списком пеподавателей и их id
+    Возвращает список преподавателей словарем где ключ = id преподователя, для удобства id есть и внутри объекта преподователя
     
     Пример:
-    [
     {
-        "ID": "7",
-        "Surname": "Айметдинов",
-        "FirstName": "Булат",
-        "SecondName": "Илдарович"
-    },
-    {
-        "ID": "8",
-        "Surname": "Андреева",
-        "FirstName": "Светлана",
-        "SecondName": "Рудольфовна"
-    },
-    {
-        "ID": "9",
-        "Surname": "Апхадзе",
-        "FirstName": "Нино",
-        "SecondName": "Алексеевна"
-    }
-    ]
+    "1": {
+        "id": 1,
+        "FirstName": "В.",
+        "SecondName": "А.",
+        "Surname": "Ткачук"
+        }
+        "2": {
+        "id": 2,
+        "FirstName": "В.",
+        "SecondName": "С.",
+        "Surname": "Белан"
+        }
+        "3": {
+        "id": 3,
+        "FirstName": "И.",
+        "SecondName": "В.",
+        "Surname": "Русских"
+        }
+        }
     '''
-    response = requests.get('https://shed.kcpt72.ru/api/json/teachers_json.php', verify=False)
+    response = requests.get(link+'teachers', verify=False)
     if response.status_code == 200 and response.json()!=[]:
         # Обработка успешного ответа
         return response.json()
@@ -71,56 +60,37 @@ def GetAllTeachers():
         raise FileNotFoundError
 
 @staticmethod
-def GetScheduleById(Date:datetime.datetime,GroupId):
+def GetSchedule(Date:datetime.datetime,GroupId:str):
     '''
     Принимает:
         Дата:DateTime
-        idГруппы:int
+        idГруппы:str
     Возвращает расписание, сразу с изменениями
     Пример:
-    [
     {
-        "Группа": "ИБАС 22-11",
-        "Подгруппа": "1",
-        "Дата": "2023-02-07",
-        "День": "2",
-        "Урок": "1",
-        "Фамилия": "Гуляев",
-        "Имя": "Иван",
-        "Отчество": "Павлович",
-        "Предмет": "МДК.02.02 Криптографические средства защиты информации",
-        "Кабинет": "312",
-        "ИЗМЕНЕНИЕ": "Да"
+    "5": {
+    "Subject": "Иностранный язык",
+    "Prepod": "Ткачук В. А.",
+    "Group": "ИСиП 21-11-3",
+    "Date": "2023-09-18",
+    "Number": 5,
+    "Classroom": "891",
+    "IsChange": false
     },
-    {
-        "Группа": "ИБАС 22-11",
-        "Подгруппа": "0",
-        "Дата": "2023-02-07",
-        "День": "2",
-        "Урок": "2",
-        "Фамилия": "Бочанов",
-        "Имя": "Виктор",
-        "Отчество": "Федорович",
-        "Предмет": "МДК.01.04 Эксплуатация автоматизированных(информационных) систем в защищенном исполнении",
-        "Кабинет": "401",
-        "ИЗМЕНЕНИЕ": "Нет"
-    },
-    {
-        "Группа": "ИБАС 22-11",
-        "Подгруппа": "0",
-        "Дата": "2023-02-07",
-        "День": "2",
-        "Урок": 3,
-        "Фамилия": "Бочанов",
-        "Имя": "Виктор",
-        "Отчество": "Федорович",
-        "Предмет": "МДК.01.04 Эксплуатация автоматизированных(информационных) систем в защищенном исполнении",
-        "Кабинет": "401"
+    "6": {
+    "Date": "2023-09-18",
+    "Group": "ИСиП 21-11-3",
+    "Number": 6,
+    "Classroom": "891",
+    "Prepod": "Ткачук В. А.",
+    "Subject": "Программирование",
+    "Comment": "Будет",
+    "Delete": null,
+    "IsChange": true
     }
-    ]
+    }
     '''
-    
-    response = requests.get('https://shed.kcpt72.ru/api/json/class_day_json.php?date='+Date.strftime('%Y-%m-%d')+'&id='+str(GroupId), verify=False)
+    response = requests.get(link+'class_day?date='+Date.strftime('%Y-%m-%d')+'&group='+str(GroupId), verify=False)
     if response.status_code == 200 and response.json()!=[]:
         # Обработка успешного ответа
         result = response.json()
@@ -129,68 +99,9 @@ def GetScheduleById(Date:datetime.datetime,GroupId):
         logger.Log('Ошибка при выполнении запроса на получение расписания для группы: '+str(GroupId)+' на '+Date.strftime('%d.%m.20%y')+': '+ str(response.status_code))
         raise FileNotFoundError
 
-@staticmethod
-def GetScheduleByName(Date:datetime.datetime,GroupName:str):
-    '''
-    Принимает:
-        Дата:DateTime
-        НазваниеГруппы:str
-    Возвращает расписание, сразу с изменениями
-    Пример:
-    [
-    {
-        "Группа": "ИБАС 22-11",
-        "Подгруппа": "1",
-        "Дата": "2023-02-07",
-        "День": "2",
-        "Урок": "1",
-        "Фамилия": "Гуляев",
-        "Имя": "Иван",
-        "Отчество": "Павлович",
-        "Предмет": "МДК.02.02 Криптографические средства защиты информации",
-        "Кабинет": "312",
-        "ИЗМЕНЕНИЕ": "Да"
-    },
-    {
-        "Группа": "ИБАС 22-11",
-        "Подгруппа": "0",
-        "Дата": "2023-02-07",
-        "День": "2",
-        "Урок": "2",
-        "Фамилия": "Бочанов",
-        "Имя": "Виктор",
-        "Отчество": "Федорович",
-        "Предмет": "МДК.01.04 Эксплуатация автоматизированных(информационных) систем в защищенном исполнении",
-        "Кабинет": "401",
-        "ИЗМЕНЕНИЕ": "Нет"
-    },
-    {
-        "Группа": "ИБАС 22-11",
-        "Подгруппа": "0",
-        "Дата": "2023-02-07",
-        "День": "2",
-        "Урок": 3,
-        "Фамилия": "Бочанов",
-        "Имя": "Виктор",
-        "Отчество": "Федорович",
-        "Предмет": "МДК.01.04 Эксплуатация автоматизированных(информационных) систем в защищенном исполнении",
-        "Кабинет": "401"
-    }
-    ]
-    '''
-    dictionary = {item["Name"]:item["ID"] for item in GetAllGroups()}
-    GroupId=dictionary[GroupName]
-    response = requests.get('https://shed.kcpt72.ru/api/json/class_day_json.php?date='+Date.strftime('%Y-%m-%d')+'&id='+str(GroupId), verify=False)
-    if response.status_code == 200 and response.json()!=[]:
-        # Обработка успешного ответа
-        result = response.json()
-        return result
-    else:
-        logger.Log('Ошибка при выполнении запроса на получение расписания для группы: '+GroupId+' на '+Date.strftime('%d.%m.20%y')+': '+str(response.status_code))
-        raise FileNotFoundError
 
 @staticmethod
-def GetTeacherScheduleById(Date:datetime.datetime,TeacherId:int):
+def GetTeacherSchedule(Date:datetime.datetime,TeacherId:int):
     '''
     Принимает:
         Дата:DateTime
@@ -213,7 +124,7 @@ def GetTeacherScheduleById(Date:datetime.datetime,TeacherId:int):
     }
     ]
     '''
-    response = requests.get('https://shed.kcpt72.ru/api/json/teacher_day_json.php?date='+Date.strftime('%Y-%m-%d')+'&id='+str(TeacherId), verify=False)
+    response = requests.get(link+'json/teacher_day?date='+Date.strftime('%Y-%m-%d')+'&teacher='+str(TeacherId), verify=False)
     if response.status_code == 200 and response.json()!=[]:
         # Обработка успешного ответа
         result = response.json()

@@ -115,64 +115,32 @@ class Database:
     @staticmethod
     def StartDatabase():
         with sqlite3.connect('ScheduleBot.db') as conn:
-            conn.execute('''
-                 DROP TABLE IF EXISTS Groups
-                ''')
-
-        # with sqlite3.connect('ScheduleBot.db') as conn:
-        #     conn.execute('''
-        #          DROP TABLE IF EXISTS Users
-        #         ''')
-        
-        #Создание таблицы с группами
-        with sqlite3.connect('ScheduleBot.db') as conn:
-            conn.execute('''
-                 CREATE TABLE IF NOT EXISTS Groups (
-                   id INTEGER PRIMARY KEY AUTOINCREMENT,
-                   GroupName TEXT NOT NULL
-                   )
-                ''')
-        with sqlite3.connect('ScheduleBot.db') as con:
-            cur = con.cursor()
-            data = []
-            for i in GetAllGroups():
-                t = (i["ID"], i["Name"])
-                data.append(t)
-
-            cur.executemany('INSERT INTO Groups(Id,GroupName) VALUES (?, ?)', data)
-            con.commit()
-        
-        #Создание таблицы пользователей с привилегиями преподавателей
-        with sqlite3.connect('ScheduleBot.db') as conn:
-            conn.execute('''CREATE TABLE IF NOT EXISTS PrepodUsers (
-                         apiid INTEGER PRIMARY KEY NOT NULL,
-                         Password TEXT NOT NULL,
-                         chatid INTEGER,
-                         FIO TEXT NOT NULL
-                         )''')
-        with sqlite3.connect('ScheduleBot.db') as con:
-            cur = con.cursor()
-            data = []
-            for i in GetAllTeachers():
-                if len(i["SecondName"]) < 2 :
-                    continue
-                else:
-                    t = (i["ID"], i["Surname"]+" "+i['FirstName']+" "+i['SecondName'], Database.generate_password(8,i["ID"]))
+                conn.execute('''CREATE TABLE IF NOT EXISTS PrepodUsers (
+                             Password TEXT NOT NULL,
+                             chatid INTEGER,
+                             FIO TEXT NOT NULL
+                             )''')
+                cur = conn.cursor()
+                data = []
+                teachers = GetAllTeachers()
+                for i in teachers:
+                    t = (teachers[str(i)]["Surname"]+" "+teachers[str(i)]['FirstName']+" "+teachers[str(i)]['SecondName'], Database.generate_password(8,teachers[str(i)]["Surname"]))
                     data.append(t)
+                
+                for i in data:
+                    if int(conn.execute('SELECT Count(*) FROM PrepodUsers WHERE FIO = ?',(i[0],)).fetchone()[0]) == 0:
+                        conn.execute('INSERT INTO PrepodUsers (FIO, Password) Values(?,?)',(i[0],i[1],))
 
-            cur.executemany('INSERT INTO PrepodUsers(apiid,FIO,Password) VALUES (?, ?, ?)', data)
-            con.commit()
-        #Создание таблицы с пользователями
-        with sqlite3.connect('ScheduleBot.db') as conn:
-            conn.execute('''
-                 CREATE TABLE IF NOT EXISTS Users (
-                   id INTEGER PRIMARY KEY,
-                   group_id INTEGER NOT NULL,
-                   FOREIGN KEY (group_id) REFERENCES Groups(id)
-                   )
-                ''')
-'''Database.StartDatabase()
-with sqlite3.connect('ScheduleBot.db') as conn:
-            c = conn.cursor()
-            c.execute("SELECT * FROM Users")
-            print(c.fetchall())'''
+                conn.commit()
+            #Создание таблицы с пользователями
+                conn.execute('''
+                     CREATE TABLE IF NOT EXISTS Users (
+                       id INTEGER PRIMARY KEY,
+                       group_id Text NOT NULL
+                       )
+                    ''')
+Database.StartDatabase()
+#with sqlite3.connect('ScheduleBot.db') as conn:
+#            c = conn.cursor()
+#            c.execute("SELECT * FROM PrepodUsers")
+#            print(c.fetchall())

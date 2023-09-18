@@ -1,0 +1,8 @@
+version: '3.4'
+
+services:
+  schedulebotfinale:
+    image: schedulebotfinale
+    build:
+      context: .
+      dockerfile: ./Dockerfile

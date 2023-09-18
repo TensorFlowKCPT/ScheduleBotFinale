@@ -1,0 +1,7 @@
+# To ensure app dependencies are ported from your virtual environment/host machine into your container, run 'pip freeze > requirements.txt' in the terminal to overwrite this file
+telebot==0.0.5
+pyTelegramBotAPI==4.13.0
+sqlalchemy==1.4.23
+python-telegram-bot==20.5
+requests==2.26.0
+Pillow

@@ -206,15 +206,17 @@ def callback_handler(call):
         else:
             global UserFailsCount
             UserFailsCount += 1
-            logger.Log(str(call.message.chat.id)+" Сейчас: "+str(datetime.datetime.now())+" Запрошенная дата: "+datetime.datetime.strptime(call.data,"%d.%m.%Y")+ " Запрошенная группа: "+Database.GetGroupIdByUserId(call.message.chat.id)+ ' error!' )
+            logger.Log(str(call.message.chat.id)+" Сейчас: "+str(datetime.datetime.now())+" Запрошенная дата: "+call.data+ " Запрошенная группа: "+Database.GetGroupIdByUserId(call.message.chat.id)+ ' error!' )
             bot.send_message(call.message.chat.id,text='Расписание на эту дату не найдено')
             return
 #endregion
 #region Старт бота
 Database.StartDatabase()
-try:
-    logger.Log("Bot Started!")
-    bot.polling()
-except:
-    logger.Log("Bot died!")
+while 1:
+    try:
+        logger.Log("Bot Started!")
+        bot.polling()
+    except Exception as e:
+        logger.Log("Bot died!")
+        logger.Log(e)
 #endregion

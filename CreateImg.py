@@ -43,29 +43,43 @@ def GetUrokTime(Date:datetime,UrokNumber:int):
         return NormalList[int(UrokNumber)]
 
 def getGroupScheduleAsImg(Schedule):
-    if len(Schedule) == 0: return False
+    if len(Schedule) == 0:
+        return False
+
+    # Заголовок таблицы
     header = ["Урок", "Предмет", "Каб.", "Преподаватель", "Время"]
+
+    # Подготовка данных для таблицы
     table_data = []
-    max_width = 20
-    max_width_kab = 3
+    max_width = 55
+    max_width_kab = 6
+
     for urok in Schedule:
-        name_lines = textwrap.wrap(Schedule[str(urok)]["Subject"], max_width)
-        kabinet_lines = textwrap.wrap(Schedule[str(urok)]["Classroom"], max_width_kab)
-        prepod_lines = textwrap.wrap(Schedule[str(urok)]['Prepod'] , max_width)
-        row = [Schedule[str(urok)]["Number"], name_lines, kabinet_lines, prepod_lines, GetUrokTime(datetime.datetime.strptime(str(Schedule[str(urok)]["Date"]), "%Y-%m-%d"), int(Schedule[str(urok)]["Number"]))]
+        subject_lines = textwrap.wrap(Schedule[str(urok)]["Subject"], max_width)
+        classroom_lines = textwrap.wrap(Schedule[str(urok)]["Classroom"], max_width_kab)
+        prepod_lines = textwrap.wrap(Schedule[str(urok)]['Prepod'], max_width)
+        
+        row = [
+            Schedule[str(urok)]["Number"],
+            subject_lines,
+            classroom_lines,
+            prepod_lines,
+            GetUrokTime(datetime.datetime.strptime(str(Schedule[str(urok)]["Date"]), "%Y-%m-%d"), int(Schedule[str(urok)]["Number"]))
+        ]
         table_data.append(row)
+
+    # Расчет размера изображения
     y = 30 * sum([max([len(row[i]) for i in range(1, 4)]) for row in table_data]) + len(table_data) + 1
     image = Image.new('RGB', (1110, y + 350), color=(255, 255, 255))
     draw = ImageDraw.Draw(image)
-
     font = ImageFont.truetype('arial.ttf', size=18)
 
     x = 10
     y = 10
-
-    cell_width = [60, 265, 50, 400, 110, 200]  # Ширина ячеек для каждого столбца
+    cell_width = [60, 570, 80, 250, 130]  # Ширина ячеек для каждого столбца
     cell_height = 30
 
+    # Вставка логотипа
     logo_image = Image.open("Logo.png")
     logo_width, logo_height = logo_image.size
     new_logo_width = int(logo_width * 0.9)
@@ -75,27 +89,30 @@ def getGroupScheduleAsImg(Schedule):
     y_logo = (image.height - new_logo_height) // 2
     image.paste(logo_image, (x_logo, y_logo))
 
-    for i in range(len(header)):
-        header_width, header_height = draw.textsize(header[i], font=font)
+    # Отрисовка заголовка таблицы
+    for i, header_text in enumerate(header):
+        header_width, header_height = draw.textsize(header_text, font=font)
         text_x = x + (cell_width[i] - header_width) // 2
         text_y = y + (cell_height - header_height) // 2
         draw.rectangle((x, y, x + cell_width[i], y + cell_height), outline=(0, 0, 0))
-        draw.text((text_x, text_y), header[i], font=font, fill=(0, 0, 0))
+        draw.text((text_x, text_y), header_text, font=font, fill=(0, 0, 0))
         x += cell_width[i]
+    
     x = 10
     y += cell_height
 
+    # Отрисовка данных таблицы
     for row in table_data:
         max_lines = max([len(row[i]) for i in range(1, 4)])
-        for i in range(len(row)):
+        for i, cell_text in enumerate(row):
             draw.rectangle((x, y, x + cell_width[i], y + cell_height * (max_lines + 1)), outline=(0, 0, 0))
             if i == 0:
-                draw.text((x + 5, y + 5), str(row[i]), font=font, fill=(0, 0, 0))
+                draw.text((x + 5, y + 5), str(cell_text), font=font, fill=(0, 0, 0))
             elif i == 1 or i == 2 or i == 3:
-                for j, line in enumerate(row[i]):
+                for j, line in enumerate(cell_text):
                     draw.text((x + 5, y + 5 + j * cell_height), line, font=font, fill=(0, 0, 0))
             else:
-                draw.text((x + 5, y + 5), str(row[i]), font=font, fill=(0, 0, 0))
+                draw.text((x + 5, y + 5), str(cell_text), font=font, fill=(0, 0, 0))
             x += cell_width[i]
         x = 10
         y += cell_height * (max_lines + 1)
@@ -104,30 +121,44 @@ def getGroupScheduleAsImg(Schedule):
     return image
 
 def getTeacherScheduleAsImg(Schedule):
-    header = ["Урок", "Группа", "Преподаватель", "Предмет", "Кабинет", "Изменения", "Время"]
-    table_data = []
-    if len(Schedule)==0: return False
-    for urok in Schedule:
-        prepod_lines = textwrap.wrap(Schedule[str(urok)]["Prepod"] , 25)
-        if type(prepod_lines) == str:
-            prepod_lines = [prepod_lines]
-        row = [int(Schedule[str(urok)]["Number"]),textwrap.wrap(Schedule[str(urok)]["Group"],9), prepod_lines, "\n".join(textwrap.wrap(Schedule[str(urok)]["Subject"], 27)), "".join(textwrap.wrap(Schedule[str(urok)]["Classroom"], 3)),Schedule[str(urok)]["IsChange"], GetUrokTime(datetime.datetime.strptime(Schedule[str(urok)]["Date"], "%Y-%m-%d"), Schedule[str(urok)]["Number"])]
-        if type(row[3]) == str:
-            row[3] = [row[3]]
-        table_data.append(row)
-    
-    y = 30 * sum([max([len(row[i]) for i in range(1, 4)]) for row in table_data]) + len(table_data) + 1
-    image = Image.new('RGB', (1390, y + 600), color=(255, 255, 255))
-    draw = ImageDraw.Draw(image)
+    if len(Schedule) == 0:
+        return False
 
+    header = ["Урок", "Группа", "Предмет", "Кабинет", "Время"]
+    table_data = []
+
+    for urok in Schedule:
+        # Обработка длинных строк
+        subject_lines = textwrap.wrap(Schedule[str(urok)]["Subject"], 50)
+        classroom_lines = textwrap.wrap(Schedule[str(urok)]["Classroom"], 5)
+
+        row = [
+            int(Schedule[str(urok)]["Number"]),
+            textwrap.wrap(Schedule[str(urok)]["Group"], 15),
+            subject_lines if isinstance(subject_lines, list) else [subject_lines],
+            classroom_lines if isinstance(classroom_lines, list) else [classroom_lines],
+            GetUrokTime(datetime.datetime.strptime(Schedule[str(urok)]["Date"], "%Y-%m-%d"), int(Schedule[str(urok)]["Number"]))
+        ]
+        table_data.append(row)
+
+    # Расчет размера изображения
+    row_heights = [100 * max([len(row[i]) for i in range(2, 4)]) for row in table_data]
+
+    # Общее количество строк в таблице
+    total_rows = len(table_data)
+
+    # Расчет высоты изображения
+    y = sum(row_heights) + total_rows + 40
+    image = Image.new('RGB', (1170, y), color=(255, 255, 255))
+    draw = ImageDraw.Draw(image)
     font = ImageFont.truetype('arial.ttf', size=18)
 
     x = 10
     y = 10
-
-    cell_width = [60, 300, 140, 270, 270, 120, 120, 110]  # Ширина ячеек для каждого столбца
+    cell_width = [60, 300, 550, 120, 120]  # Ширина ячеек для каждого столбца
     cell_height = 40
 
+    # Вставка логотипа
     logo_image = Image.open("Logo.png")
     logo_width, logo_height = logo_image.size
     new_logo_width = int(logo_width * 0.9)
@@ -137,18 +168,21 @@ def getTeacherScheduleAsImg(Schedule):
     y_logo = (image.height - new_logo_height) // 2
     image.paste(logo_image, (x_logo, y_logo))
 
-    for i in range(len(header)):
-        header_width, header_height = draw.textsize(header[i], font=font)
+    # Отрисовка заголовка таблицы
+    for i, header_text in enumerate(header):
+        header_width, header_height = draw.textsize(header_text, font=font)
         text_x = x + (cell_width[i] - header_width) // 2
         text_y = y + (cell_height - header_height) // 2
         draw.rectangle((x, y, x + cell_width[i], y + cell_height), outline=(0, 0, 0))
-        draw.text((text_x, text_y), header[i], font=font, fill=(0, 0, 0))
+        draw.text((text_x, text_y), header_text, font=font, fill=(0, 0, 0))
         x += cell_width[i]
+    
     x = 10
     y += cell_height
 
+    # Отрисовка данных таблицы
     for row in table_data:
-        max_lines = max([len(row[i]) for i in range(1, 4)])
+        max_lines = max([len(row[i]) for i in range(2, 4)])
         for i in range(len(row)):
             draw.rectangle((x, y, x + cell_width[i], y + cell_height * (max_lines + 1)), outline=(0, 0, 0))
             if i == 0:

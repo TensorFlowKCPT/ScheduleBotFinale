@@ -2,6 +2,7 @@ import telebot
 from telebot import types
 from sql import Database
 import datetime
+import locale
 from KCPTapi import GetSchedule,GetTeacherSchedule,GetAllGroups
 from CreateImg import getGroupScheduleAsImg,getTeacherScheduleAsImg
 import logger
@@ -67,15 +68,39 @@ def GetMenuKeyboard(message):
 @staticmethod
 def GetDatesKeyboard(IsTeacher:bool):
     # Создаем клавиатуру
+    locale.setlocale(locale.LC_TIME, 'ru_RU')
+    
     keyboard = types.InlineKeyboardMarkup()
-    # Создаем кнопки для нескольких дней
-    for i in range(0,7):
-        date = (datetime.datetime.now()+datetime.timedelta(days=i)).strftime('%d.%m.%Y')
+
+    # Дни недели для соответствующих дат
+    days_of_week = ["Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота"]
+
+    for i in range(0, 8):  # Добавляем 8 дней, чтобы пропустить воскресенье и добавить один день в конец
+        # Получаем дату для текущего дня и день недели
+        current_date = datetime.datetime.now() + datetime.timedelta(days=i)
+        formatted_date = current_date.strftime('%d.%m')  # Форматируем дату как "день месяца Месяц"
+        
+        # Если текущий день - воскресенье, пропустить его и добавить один день
+        if current_date.weekday() == 6:
+            continue
+
+        day_of_week = days_of_week[current_date.weekday()]  # Получаем день недели
+
+        # Создаем текст для кнопки
+        button_text = f"{formatted_date} ({day_of_week})"
+        if i == 0:
+            button_text += " (Сегодня)"
+        elif i == 1:
+            button_text += " (Завтра)"
+
+        # Создаем кнопку с callback_data
         if IsTeacher:
-            button_day = types.InlineKeyboardButton(text=date, callback_data=date+'*')
+            button_day = types.InlineKeyboardButton(text=button_text, callback_data=f"{current_date.strftime('%d.%m.%Y')}*")
         else:
-            button_day = types.InlineKeyboardButton(text=date, callback_data=date)
+            button_day = types.InlineKeyboardButton(text=button_text, callback_data=current_date.strftime('%d.%m.%Y'))
+
         keyboard.add(button_day)
+
     return keyboard
 #endregion
 #region Админ-панель
@@ -146,6 +171,9 @@ def ChangeGroupBtn_Handler(message):
 #region Менюшки
 @staticmethod 
 def MainMenu(message):
+    if not Database.is_user_exists(message.chat.id):
+        bot.send_message(message.chat.id,text='Вы не зарегестрированы, выберите свою группу',reply_markup=GetGroupsKeyboard())
+        return
     bot.send_message(message.chat.id,text='Меню\nПо ошибкам писать\n@PikaChu72\n@Lardane\n@bymaginn',reply_markup=GetMenuKeyboard(message))
 def SettingsMenu(message):
     bot.send_message(message.chat.id,text='Настройки',reply_markup=GetSettingsKeyboard())
@@ -192,7 +220,7 @@ def callback_handler(call):
         else:
             global TeacherFailsCount
             TeacherFailsCount += 1
-            bot.send_message(call.message.chat.id,text='Расписание на эту дату не найдено')
+            bot.send_message(call.message.chat.id,text='Расписание на '+datetime.datetime.strptime(call.data[0:len(call.data)-1],"%d.%m")+' не найдено')
             return
     else:
         global UsersQueriesCount
@@ -207,7 +235,7 @@ def callback_handler(call):
             global UserFailsCount
             UserFailsCount += 1
             logger.Log(str(call.message.chat.id)+" Сейчас: "+str(datetime.datetime.now())+" Запрошенная дата: "+call.data+ " Запрошенная группа: "+Database.GetGroupIdByUserId(call.message.chat.id)+ ' error!' )
-            bot.send_message(call.message.chat.id,text='Расписание на эту дату не найдено')
+            bot.send_message(call.message.chat.id,text='Расписание на ' +call.data+' не найдено')
             return
 #endregion
 #region Старт бота

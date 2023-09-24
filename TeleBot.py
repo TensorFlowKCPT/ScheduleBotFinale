@@ -209,11 +209,12 @@ def callback_handler(call):
     if '*' in call.data:
         global TeacherQueriesCount
         TeacherQueriesCount += 1
-        
-        image = getTeacherScheduleAsImg(GetTeacherSchedule(datetime.datetime.strptime(call.data[0:len(call.data)-1],"%d.%m.%Y"),Database.getPrepodIdByChatId(call.message.chat.id)))
+        prepod = Database.getPrepodIdByChatId(call.message.chat.id)
+        image = getTeacherScheduleAsImg(GetTeacherSchedule(datetime.datetime.strptime(call.data[0:len(call.data)-1],"%d.%m.%Y"),prepod))
         if image != False:
             image.save('table.png')
             with open('table.png', 'rb') as f:
+                bot.send_message(call.message.chat.id, text="Расписание для "+ prepod+ ' на ' + call.data[0:len(call.data)-1])
                 bot.send_photo(call.message.chat.id,photo=f)
             logger.Log(str(call.message.chat.id)+" "+str(datetime.datetime.now()) + ' teacher success!' )
 
@@ -225,10 +226,12 @@ def callback_handler(call):
     else:
         global UsersQueriesCount
         UsersQueriesCount += 1
-        image = getGroupScheduleAsImg(GetSchedule(datetime.datetime.strptime(call.data,"%d.%m.%Y"),Database.GetGroupIdByUserId(call.message.chat.id)))
+        group = Database.GetGroupIdByUserId(call.message.chat.id)
+        image = getGroupScheduleAsImg(GetSchedule(datetime.datetime.strptime(call.data,"%d.%m.%Y"), group))
         if image != False:
             image.save('table.png')
             with open('table.png', 'rb') as f:
+                bot.send_message(call.message.chat.id, text="Расписание для "+ group+ ' на ' + call.data)
                 bot.send_photo(call.message.chat.id,photo=f)
             logger.Log(str(call.message.chat.id)+" "+str(datetime.datetime.now()) + ' success!' )
         else:

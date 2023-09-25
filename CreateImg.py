@@ -46,14 +46,26 @@ def getGroupScheduleAsImg(Schedule):
     if len(Schedule) == 0:
         return False
 
-    # Заголовок таблицы
     header = ["Урок", "Предмет", "Каб.", "Преподаватель", "Время"]
-
-    # Подготовка данных для таблицы
     table_data = []
     max_width = 55
     max_width_kab = 6
+    prev_urok_number = 0  # Переменная для отслеживания номера предыдущего урока
+
     for number in Schedule:
+        # Добавляем пустые строки между уроками, если есть пропуск
+        current_urok_number = Schedule[number][0]["Number"]
+        if current_urok_number - prev_urok_number > 1:
+            for i in range(prev_urok_number + 1, current_urok_number):
+                empty_row = [
+                    i,
+                    "",
+                    "",
+                    "",
+                    GetUrokTime(datetime.datetime.strptime(Schedule[number][0]["Date"], "%Y-%m-%d"), i)
+                ]
+                table_data.append(empty_row)
+
         for urok in Schedule[number]:
             subject_lines = textwrap.wrap(urok["Subject"], max_width)
             classroom_lines = textwrap.wrap(urok["Classroom"], max_width_kab)
@@ -67,6 +79,8 @@ def getGroupScheduleAsImg(Schedule):
                 GetUrokTime(datetime.datetime.strptime(urok["Date"], "%Y-%m-%d"), urok["Number"])
             ]
             table_data.append(row)
+
+        prev_urok_number = current_urok_number
 
     # Расчет размера изображения
     y = 50 * sum([max([len(row[i]) for i in range(1, 4)]) for row in table_data]) + len(table_data) + 1
@@ -126,13 +140,15 @@ def getTeacherScheduleAsImg(Schedule):
 
     header = ["Урок", "Группа", "Предмет", "Кабинет", "Время"]
     table_data = []
-    prev_urok_number = 0 
+    prev_urok_number = 0
 
     for urok in Schedule:
         urok_data = Schedule[str(urok)]
         subject_lines = textwrap.wrap(urok_data["Subject"], 50)
         classroom_lines = textwrap.wrap(urok_data["Classroom"], 5)
         current_urok_number = int(urok_data["Number"])
+
+        # Добавляем пустые строки между уроками, если есть пропуск
         if current_urok_number - prev_urok_number > 1:
             for i in range(prev_urok_number + 1, current_urok_number):
                 empty_row = [
@@ -156,13 +172,13 @@ def getTeacherScheduleAsImg(Schedule):
         prev_urok_number = current_urok_number
 
     # Расчет размера изображения
-    row_heights = [100 * max([len(row[i]) for i in range(2, 4)]) for row in table_data]
+    row_heights = [120 * max([len(row[i]) for i in range(2, 4)]) for row in table_data]
 
     # Общее количество строк в таблице
     total_rows = len(table_data)
 
     # Расчет высоты изображения
-    y = sum(row_heights) + total_rows + 40
+    y = sum(row_heights) + total_rows + 250
     image = Image.new('RGB', (1170, y), color=(255, 255, 255))
     draw = ImageDraw.Draw(image)
     font = ImageFont.truetype('arial.ttf', size=18)

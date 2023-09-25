@@ -46,27 +46,41 @@ def getGroupScheduleAsImg(Schedule):
     if len(Schedule) == 0:
         return False
 
-    # Заголовок таблицы
     header = ["Урок", "Предмет", "Каб.", "Преподаватель", "Время"]
-
-    # Подготовка данных для таблицы
     table_data = []
     max_width = 55
     max_width_kab = 6
-    for number in Schedule:
-        for urok in Schedule[number]:
-            subject_lines = textwrap.wrap(urok["Subject"], max_width)
-            classroom_lines = textwrap.wrap(urok["Classroom"], max_width_kab)
-            prepod_lines = textwrap.wrap(urok['Prepod'], max_width)
+    prev_urok_number = 0  # Переменная для отслеживания номера предыдущего урока
 
-            row = [
-                urok["Number"],
-                subject_lines,
-                classroom_lines,
-                prepod_lines,
-                GetUrokTime(datetime.datetime.strptime(urok["Date"], "%Y-%m-%d"), urok["Number"])
-            ]
-            table_data.append(row)
+    for number in Schedule:
+        urok = Schedule[number][0]  # Берем первый урок из списка уроков для данного номера
+        subject_lines = textwrap.wrap(urok["Subject"], max_width)
+        classroom_lines = textwrap.wrap(urok["Classroom"], max_width_kab)
+        prepod_lines = textwrap.wrap(urok['Prepod'], max_width)
+
+        # Добавляем пустые строки между уроками, если есть пропуск
+        current_urok_number = urok["Number"]
+        if current_urok_number - prev_urok_number > 1:
+            for i in range(prev_urok_number + 1, current_urok_number):
+                empty_row = [
+                    i,
+                    "",
+                    "",
+                    "",
+                    GetUrokTime(datetime.datetime.strptime(urok["Date"], "%Y-%m-%d"), i)
+                ]
+                table_data.append(empty_row)
+
+        row = [
+            urok["Number"],
+            subject_lines,
+            classroom_lines,
+            prepod_lines,
+            GetUrokTime(datetime.datetime.strptime(urok["Date"], "%Y-%m-%d"), urok["Number"])
+        ]
+        table_data.append(row)
+
+        prev_urok_number = current_urok_number
 
     # Расчет размера изображения
     y = 30 * sum([max([len(row[i]) for i in range(1, 4)]) for row in table_data]) + len(table_data) + 1
@@ -126,20 +140,34 @@ def getTeacherScheduleAsImg(Schedule):
 
     header = ["Урок", "Группа", "Предмет", "Кабинет", "Время"]
     table_data = []
+    prev_urok_number = 0 
 
     for urok in Schedule:
-        # Обработка длинных строк
-        subject_lines = textwrap.wrap(Schedule[str(urok)]["Subject"], 50)
-        classroom_lines = textwrap.wrap(Schedule[str(urok)]["Classroom"], 5)
+        urok_data = Schedule[str(urok)]
+        subject_lines = textwrap.wrap(urok_data["Subject"], 50)
+        classroom_lines = textwrap.wrap(urok_data["Classroom"], 5)
+        current_urok_number = int(urok_data["Number"])
+        if current_urok_number - prev_urok_number > 1:
+            for i in range(prev_urok_number + 1, current_urok_number):
+                empty_row = [
+                    i,
+                    [],
+                    [],
+                    [],
+                    GetUrokTime(datetime.datetime.strptime(urok_data["Date"], "%Y-%m-%d"), i)
+                ]
+                table_data.append(empty_row)
 
         row = [
-            int(Schedule[str(urok)]["Number"]),
-            textwrap.wrap(Schedule[str(urok)]["Group"], 15),
+            current_urok_number,
+            textwrap.wrap(urok_data["Group"], 15),
             subject_lines if isinstance(subject_lines, list) else [subject_lines],
             classroom_lines if isinstance(classroom_lines, list) else [classroom_lines],
-            GetUrokTime(datetime.datetime.strptime(Schedule[str(urok)]["Date"], "%Y-%m-%d"), int(Schedule[str(urok)]["Number"]))
+            GetUrokTime(datetime.datetime.strptime(urok_data["Date"], "%Y-%m-%d"), current_urok_number)
         ]
         table_data.append(row)
+
+        prev_urok_number = current_urok_number
 
     # Расчет размера изображения
     row_heights = [100 * max([len(row[i]) for i in range(2, 4)]) for row in table_data]

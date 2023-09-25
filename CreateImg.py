@@ -46,44 +46,30 @@ def getGroupScheduleAsImg(Schedule):
     if len(Schedule) == 0:
         return False
 
+    # Заголовок таблицы
     header = ["Урок", "Предмет", "Каб.", "Преподаватель", "Время"]
+
+    # Подготовка данных для таблицы
     table_data = []
     max_width = 55
     max_width_kab = 6
-    prev_urok_number = 0  # Переменная для отслеживания номера предыдущего урока
-
     for number in Schedule:
-        urok = Schedule[number][0]  # Берем первый урок из списка уроков для данного номера
-        subject_lines = textwrap.wrap(urok["Subject"], max_width)
-        classroom_lines = textwrap.wrap(urok["Classroom"], max_width_kab)
-        prepod_lines = textwrap.wrap(urok['Prepod'], max_width)
+        for urok in Schedule[number]:
+            subject_lines = textwrap.wrap(urok["Subject"], max_width)
+            classroom_lines = textwrap.wrap(urok["Classroom"], max_width_kab)
+            prepod_lines = textwrap.wrap(urok['Prepod'], max_width)
 
-        # Добавляем пустые строки между уроками, если есть пропуск
-        current_urok_number = urok["Number"]
-        if current_urok_number - prev_urok_number > 1:
-            for i in range(prev_urok_number + 1, current_urok_number):
-                empty_row = [
-                    i,
-                    "",
-                    "",
-                    "",
-                    GetUrokTime(datetime.datetime.strptime(urok["Date"], "%Y-%m-%d"), i)
-                ]
-                table_data.append(empty_row)
-
-        row = [
-            urok["Number"],
-            subject_lines,
-            classroom_lines,
-            prepod_lines,
-            GetUrokTime(datetime.datetime.strptime(urok["Date"], "%Y-%m-%d"), urok["Number"])
-        ]
-        table_data.append(row)
-
-        prev_urok_number = current_urok_number
+            row = [
+                urok["Number"],
+                subject_lines,
+                classroom_lines,
+                prepod_lines,
+                GetUrokTime(datetime.datetime.strptime(urok["Date"], "%Y-%m-%d"), urok["Number"])
+            ]
+            table_data.append(row)
 
     # Расчет размера изображения
-    y = 30 * sum([max([len(row[i]) for i in range(1, 4)]) for row in table_data]) + len(table_data) + 1
+    y = 50 * sum([max([len(row[i]) for i in range(1, 4)]) for row in table_data]) + len(table_data) + 1
     image = Image.new('RGB', (1110, y + 350), color=(255, 255, 255))
     draw = ImageDraw.Draw(image)
     font = ImageFont.truetype('arial.ttf', size=18)

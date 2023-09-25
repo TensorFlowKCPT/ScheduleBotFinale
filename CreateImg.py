@@ -53,20 +53,20 @@ def getGroupScheduleAsImg(Schedule):
     table_data = []
     max_width = 55
     max_width_kab = 6
+    for number in Schedule:
+        for urok in Schedule[number]:
+            subject_lines = textwrap.wrap(urok["Subject"], max_width)
+            classroom_lines = textwrap.wrap(urok["Classroom"], max_width_kab)
+            prepod_lines = textwrap.wrap(urok['Prepod'], max_width)
 
-    for urok in Schedule:
-        subject_lines = textwrap.wrap(Schedule[str(urok)]["Subject"], max_width)
-        classroom_lines = textwrap.wrap(Schedule[str(urok)]["Classroom"], max_width_kab)
-        prepod_lines = textwrap.wrap(Schedule[str(urok)]['Prepod'], max_width)
-        
-        row = [
-            Schedule[str(urok)]["Number"],
-            subject_lines,
-            classroom_lines,
-            prepod_lines,
-            GetUrokTime(datetime.datetime.strptime(str(Schedule[str(urok)]["Date"]), "%Y-%m-%d"), int(Schedule[str(urok)]["Number"]))
-        ]
-        table_data.append(row)
+            row = [
+                urok["Number"],
+                subject_lines,
+                classroom_lines,
+                prepod_lines,
+                GetUrokTime(datetime.datetime.strptime(urok["Date"], "%Y-%m-%d"), urok["Number"])
+            ]
+            table_data.append(row)
 
     # Расчет размера изображения
     y = 30 * sum([max([len(row[i]) for i in range(1, 4)]) for row in table_data]) + len(table_data) + 1

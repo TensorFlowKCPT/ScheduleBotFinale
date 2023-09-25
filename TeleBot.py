@@ -68,14 +68,13 @@ def GetMenuKeyboard(message):
 @staticmethod
 def GetDatesKeyboard(IsTeacher:bool):
     # Создаем клавиатуру
-    locale.setlocale(locale.LC_TIME, 'ru_RU')
     
     keyboard = types.InlineKeyboardMarkup()
 
     # Дни недели для соответствующих дат
     days_of_week = ["Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота"]
 
-    for i in range(0, 8):  # Добавляем 8 дней, чтобы пропустить воскресенье и добавить один день в конец
+    for i in range(-1, 8):  # Добавляем 8 дней, чтобы пропустить воскресенье и добавить один день в конец
         # Получаем дату для текущего дня и день недели
         current_date = datetime.datetime.now() + datetime.timedelta(days=i)
         formatted_date = current_date.strftime('%d.%m')  # Форматируем дату как "день месяца Месяц"
@@ -92,6 +91,8 @@ def GetDatesKeyboard(IsTeacher:bool):
             button_text += " (Сегодня)"
         elif i == 1:
             button_text += " (Завтра)"
+        elif i == -1:
+            button_text += " (Вчера)"
 
         # Создаем кнопку с callback_data
         if IsTeacher:

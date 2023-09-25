@@ -222,7 +222,7 @@ def callback_handler(call):
         else:
             global TeacherFailsCount
             TeacherFailsCount += 1
-            bot.send_message(call.message.chat.id,text='Расписание на '+datetime.datetime.strptime(call.data[0:len(call.data)-1],"%d.%m")+' не найдено')
+            bot.send_message(call.message.chat.id,text='Расписание на '+call.data[0:len(call.data)-1]+' не найдено')
             return
     else:
         global UsersQueriesCount

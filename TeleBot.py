@@ -13,7 +13,7 @@ import os
 #Ключ от ScheduleBot: 6062185576:AAGwpqVz0K8Zg_i7hz-URE2USZcxazuGN-A
 #Ключ от тестового бота: 6026851226:AAFm4TvYE9QfIYSzx-hKiB3Mh_CtQ0KXrvY
 #Ключ от нашего бота: 6116104389:AAHcK-4uNVt3Tmgan2MQ0D0UBC78VTtZ6wg
-bot = telebot.TeleBot("6026851226:AAFm4TvYE9QfIYSzx-hKiB3Mh_CtQ0KXrvY")
+bot = telebot.TeleBot("6103760766:AAHwuoOl-2i2jOTty5-roDs889pqtms-eIU")
 bot_id = bot.get_me().id
 UsersQueriesCount = 0
 TeacherQueriesCount = 0

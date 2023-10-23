@@ -8,6 +8,22 @@ class Database:
         characters = string.ascii_letters + string.digits
         password = ''.join(random.choice(characters) for _ in range(length))
         return password
+    
+    @staticmethod
+    def GetPrepodPasswords():
+        Database.StartDatabase()
+        with sqlite3.connect('ScheduleBot.db') as conn:
+            c = conn.cursor()
+            c.execute("SELECT FIO, Password FROM PrepodUsers")
+            data = c.fetchall()
+
+        formatted_data = ''
+        for row in data:
+            formatted_data += f"ФИО: {row[0]}, Пароль: /pr {row[1]}\n"
+
+        return formatted_data
+        
+
     @staticmethod
     def RegUser(ChatId, Group: str):
         with sqlite3.connect('ScheduleBot.db') as conn:

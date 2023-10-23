@@ -8,12 +8,8 @@ from CreateImg import getGroupScheduleAsImg,getTeacherScheduleAsImg
 import logger
 import os
 
-
-#Ветка приватная, не ссыте оставлять ключ
-#Ключ от ScheduleBot: 6062185576:AAGwpqVz0K8Zg_i7hz-URE2USZcxazuGN-A
-#Ключ от тестового бота: 6026851226:AAFm4TvYE9QfIYSzx-hKiB3Mh_CtQ0KXrvY
-#Ключ от нашего бота: 6116104389:AAHcK-4uNVt3Tmgan2MQ0D0UBC78VTtZ6wg
-bot = telebot.TeleBot("6026851226:AAFm4TvYE9QfIYSzx-hKiB3Mh_CtQ0KXrvY")
+#Ключ от бота колледжа: 6103760766:AAHwuoOl-2i2jOTty5-roDs889pqtms-eIU
+bot = telebot.TeleBot("6103760766:AAHwuoOl-2i2jOTty5-roDs889pqtms-eIU")
 bot_id = bot.get_me().id
 UsersQueriesCount = 0
 TeacherQueriesCount = 0
@@ -50,9 +46,11 @@ def GetAdminKeyboard(message):
     LogsButton = types.KeyboardButton(text="Получить логи📝")
     UsersCountButton = types.KeyboardButton(text="Получить количество пользователей👤")
     CountQueriesButton = types.KeyboardButton(text="Получить количество запросов📅")
+    PasswordsButton = types.KeyboardButton(text="Получить пароли преподавателей🔒")
     BackButton = types.KeyboardButton(text="◀️")
     keyboard.add(LogsButton,UsersCountButton)
     keyboard.add(CountQueriesButton)
+    keyboard.add(PasswordsButton)
     keyboard.add(BackButton)
     return keyboard
 @staticmethod
@@ -105,6 +103,10 @@ def GetDatesKeyboard(IsTeacher:bool):
     return keyboard
 #endregion
 #region Админ-панель
+@bot.message_handler(regexp='Получить пароли преподавателей🔒')
+def GetPrepodPasswords(message):
+    bot.send_message(message.chat.id, text=Database.GetPrepodPasswords())
+
 @bot.message_handler(regexp='Получить логи📝')
 def GetLogsHandler(message):
     with open("app.log", 'rb') as log_file:

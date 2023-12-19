@@ -220,8 +220,9 @@ def callback_handler(call):
         prepod = Database.getPrepodIdByChatId(call.message.chat.id)
         image = getTeacherScheduleAsImg(GetTeacherSchedule(datetime.datetime.strptime(call.data[0:len(call.data)-1],"%d.%m.%Y"),prepod))
         if image != False:
-            image.save('table.png')
-            with open('table.png', 'rb') as f:
+            imgname = str(call.message.chat.id)+".png"
+            image.save(imgname)
+            with open(imgname, 'rb') as f:
                 bot.send_message(call.message.chat.id, text="Расписание для "+ prepod+ ' на ' + call.data[0:len(call.data)-1])
                 bot.send_photo(call.message.chat.id,photo=f)
             logger.Log(str(call.message.chat.id)+" "+str(datetime.datetime.now()) + ' teacher success!' )
@@ -237,8 +238,9 @@ def callback_handler(call):
         group = Database.GetGroupIdByUserId(call.message.chat.id)
         image = getGroupScheduleAsImg(GetSchedule(datetime.datetime.strptime(call.data,"%d.%m.%Y"), group))
         if image != False:
-            image.save('table.png')
-            with open('table.png', 'rb') as f:
+            imgname = str(call.message.chat.id)+".png"
+            image.save(imgname)
+            with open(imgname, 'rb') as f:
                 bot.send_message(call.message.chat.id, text="Расписание для "+ group+ ' на ' + call.data)
                 bot.send_photo(call.message.chat.id,photo=f)
             logger.Log(str(call.message.chat.id)+" "+str(datetime.datetime.now()) + ' success!' )
@@ -254,7 +256,7 @@ Database.StartDatabase()
 while 1:
     try:
         logger.Log("Bot Started!")
-        bot.polling()
+        bot.polling(non_stop=True, skip_pending=True)
     except Exception as e:
         logger.Log("Bot died!")
         logger.Log(e)

@@ -225,6 +225,7 @@ def callback_handler(call):
             with open(imgname, 'rb') as f:
                 bot.send_message(call.message.chat.id, text="Расписание для "+ prepod+ ' на ' + call.data[0:len(call.data)-1])
                 bot.send_photo(call.message.chat.id,photo=f)
+            os.remove(imgname)
             logger.Log(str(call.message.chat.id)+" "+str(datetime.datetime.now()) + ' teacher success!' )
 
         else:
@@ -243,6 +244,7 @@ def callback_handler(call):
             with open(imgname, 'rb') as f:
                 bot.send_message(call.message.chat.id, text="Расписание для "+ group+ ' на ' + call.data)
                 bot.send_photo(call.message.chat.id,photo=f)
+            os.remove(imgname)
             logger.Log(str(call.message.chat.id)+" "+str(datetime.datetime.now()) + ' success!' )
         else:
             global UserFailsCount
